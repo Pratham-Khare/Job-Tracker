@@ -1,0 +1,1 @@
+import {Router} from 'express'; import {list,create} from '../controllers/contactController.js'; import {auth} from '../middleware/auth.js'; const r=Router();r.use(auth);r.get('/',list);r.post('/',create);export default r;
