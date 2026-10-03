@@ -28,8 +28,21 @@ if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'jobtrack-local-developmen
 
 const app=express();
 app.use(helmet({crossOriginResourcePolicy:false}));
-app.use(cors({origin:process.env.CLIENT_URL||'http://localhost:5173'}));
-app.use(morgan('combined'));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://job-tracker-ten-red.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));app.use(morgan('combined'));
 app.use(rateLimit({windowMs:15*60*1000,max:300,standardHeaders:true,legacyHeaders:false}));
 app.get('/api/health',(req,res)=>res.json({ok:true,service:'job-tracker'}));
 app.get('/api/tracking/health',(req,res)=>{const base=process.env.SERVER_PUBLIC_URL||'http://localhost:5000';res.json({ok:true,publicUrl:base,publiclyReachable:!/(localhost|127\.0\.0\.1)/i.test(base),message:/(localhost|127\.0\.0\.1)/i.test(base)?'Tracking will not receive external email events until SERVER_PUBLIC_URL is a public HTTPS URL.':'Tracking endpoint configured for a public URL.'})});
